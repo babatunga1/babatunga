@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YagaKazan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Teko:wght@600&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f172a;
+            background-image: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            color: #f1f5f9;
+            /* slate-100 */
+            overflow-x: hidden;
+            -webkit-user-select: none;
+            /* Safari */
+            -ms-user-select: none;
+            /* IE 10+ */
+            user-select: none;
+            /* Standard syntax */
+        }
+ /* Popup arkaplan */
+        #popup-bg {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        /* Popup kutusu */
+        #popup-box {
+            background: rgb(44, 44, 44);
+            padding: 20px;
+            max-width: 400px;
+            border-radius: 15px;
+            box-shadow: 0px 5px 20px rgba(0,0,0,0.3);
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        #popup-box p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        #popup-btn {
+            padding: 10px 20px;
+            background-color: #0078ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        #popup-btn:hover {
+            background-color: #005ec7;
+        }
+        .title-gradient {
+            font-family: 'Teko', sans-serif;
+            background: -webkit-linear-gradient(45deg, #38bdf8, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .clicker-icon {
+            animation: pulse 2s infinite;
+        }
+
+        .clicker-icon:active {
+            transform: scale(0.95) rotate(-5deg);
+            transition: transform 0.1s ease-in;
+            animation: none;
+        }
+
+        .card,
+        .upgrade-card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card:hover,
+        .upgrade-card:hover:not(.disabled-card) {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .disabled-card {
+            filter: grayscale(80%);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .disabled-card:hover {
+            transform: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-hidden .modal-content {
+            transform: scale(0.9);
+            opacity: 0;
+        }
+
+        #scratch-canvas {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="gold" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>'), auto;
+            border-radius: 0.75rem;
+        }
+
+        @keyframes float-up {
+            100% {
+                opacity: 0;
+                transform: translateY(-50px) scale(1.5);
+            }
+        }
+
+        .click-feedback {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fbbf24;
+            animation: float-up 0.6s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
+            }
+
+            70% {
+                transform: scale(1.02);
+                box-shadow: 0 0 0 20px rgba(251, 191, 36, 0);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
+            }
+        }
+
+        #coin.flipping {
+            animation: flip 0.5s ease-in-out forwards;
+        }
+
+        @keyframes flip {
+            0% {
+                transform: rotateY(0deg);
+            }
+
+            100% {
+                transform: rotateY(1800deg);
+            }
+
+            /* Multiple spins for effect */
+        }
+
+        .section-title {
+            border-bottom: 2px solid #334155;
+            padding-bottom: 0.5rem;
+            margin-bottom: 2rem;
+            font-family: 'Teko', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .rarity-common {
+            color: #d1d5db;
+        }
+
+        .rarity-uncommon {
+            color: #22c55e;
+        }
+
+        .rarity-rare {
+            color: #3b82f6;
+        }
+
+        .rarity-legendary {
+            color: #a855f7;
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col items-center p-4 sm:p-6 md:p-8">
+    <div id="popup-bg">
+        <div id="popup-box">
+            <p>Sitemizdeki değişimi fark ettiğinizi biliyoruz.<br>
+                Kullanılan fotoğrafları telif hakları sebebiyle değiştirmek zorunda kaldık.<br>
+                Değişiklik için kusura bakmayın.</p>
+            <button id="popup-btn">Tamam</button>
+        </div>
+    </div>
+    <!-- Ana Konteyner -->
+    <div class="w-full max-w-6xl mx-auto">
+        <!-- Üst Başlık ve Bilgiler -->
+        <header
+            class="flex justify-between items-center py-4 px-6 bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-700">
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold title-gradient tracking-wider">
+                YagaKazan
+            </h1>
+            <div class="flex items-center space-x-4 sm:space-x-6">
+                <button id="collection-btn"
+                    class="text-sm sm:text-base bg-sky-500 hover:bg-sky-600 transition-colors duration-300 text-white font-semibold py-2 px-4 rounded-lg shadow-md">
+                    Koleksiyon
+                </button>
+                <div class="text-center">
+                    <span class="text-xs sm:text-sm text-slate-400">Paran</span>
+                    <div id="money-display" class="text-lg sm:text-xl md:text-2xl font-bold text-amber-400">0.00 ₺</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Ana içerik Grid'i -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8 sm:mt-12">
+            <!-- Sol Sütun: Clicker ve Oyunlar -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Maden Clicker Bölümü -->
+                <main class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                    <h2 class="text-3xl text-center font-bold text-slate-300 section-title">Maden Ocağı</h2>
+                    <div class="text-center">
+                        <p class="text-slate-400 mb-6">Her tıklama sana para kazandırır.</p>
+                        <div id="clicker-container" class="relative inline-block">
+                            <div id="clicker"
+                                class="clicker-icon w-32 h-32 sm:w-40 sm:h-40 bg-slate-700 rounded-full flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-105 border-4 border-slate-600 shadow-2xl">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 sm:w-24 sm:h-24 text-amber-400"
+                                    viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M20.41,6.41l-2.83-2.83a1,1,0,0,0-1.41,0L4.41,15.34a1,1,0,0,0,0,1.41l2.83,2.83a1,1,0,0,0,1.41,0L10,18.24V21a1,1,0,0,0,1,1h2a1,1,0,0,0,1-1V18.24l5.76-5.76a1,1,0,0,0,0-1.41ZM12,16.81,9.5,14.31,15.17,8.64,17.67,11.14ZM18.36,10,16.5,8.14l1.41-1.41,1.86,1.86Z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                <!-- Diğer Oyunlar -->
+                <section class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                    <h2 class="text-3xl text-center font-bold text-slate-300 section-title">Şans Oyunları</h2>
+                    <div id="coin-flip-container" class="text-center">
+                        <h3 class="text-xl font-semibold mb-4 text-white">Yazı Tura</h3>
+                        <div id="coin"
+                            class="w-24 h-24 mx-auto mb-4 rounded-full bg-yellow-400 flex items-center justify-center text-3xl font-bold text-yellow-800 border-4 border-yellow-600">
+                            ?</div>
+                        <p id="coin-flip-result" class="h-6 mb-2 text-lg font-semibold"></p>
+                        <div class="flex justify-center items-center space-x-2 mb-4">
+                            <label for="bet-amount" class="text-slate-300">Bahis:</label>
+                            <input type="number" id="bet-amount"
+                                class="bg-slate-700 border border-slate-600 rounded-md px-2 py-1 w-24 text-center"
+                                value="10" min="1">
+                        </div>
+                        <div class="space-x-4">
+                            <button id="heads-btn"
+                                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">Yazı</button>
+                            <button id="tails-btn"
+                                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">Tura</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Sağ Sütun: Pasif Gelir -->
+            <aside class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                <h2 class="text-3xl text-center font-bold text-slate-300 section-title">Pasif Gelir</h2>
+                <div class="text-center mb-4">
+                    <span class="text-slate-400">Saniyelik Kazanç</span>
+                    <p id="idle-income-display" class="text-xl font-bold text-green-400">0.00 ₺/s</p>
+                </div>
+                <div id="upgrades-container" class="space-y-3">
+                    <!-- Yükseltmeler JS ile eklenecek -->
+                </div>
+            </aside>
+        </div>
+
+        <!-- Kazı Kazan Kartları -->
+        <section class="mt-8 sm:mt-12 bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+            <h2 class="text-3xl text-center font-bold text-slate-300 section-title">Kazı Kazan</h2>
+            <div id="card-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Kartlar JS ile oluşturulacak -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Modallar -->
+    <div id="scratch-modal" class="modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="modal-backdrop fixed inset-0 bg-black/70"></div>
+        <div
+            class="modal-content bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md relative border border-slate-700">
+            <button id="close-scratch-modal"
+                class="absolute top-3 right-4 text-slate-400 hover:text-white text-3xl transition-colors">&times;</button>
+            <h3 id="modal-title" class="text-2xl font-bold text-center mb-4"></h3>
+            <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900">
+                <img id="prize-image" src="" alt="Ödül" class="absolute inset-0 w-full h-full object-cover">
+                <canvas id="scratch-canvas" class="absolute inset-0 w-full h-full"></canvas>
+            </div>
+            <p id="win-message" class="text-center mt-4 text-xl font-semibold hidden"></p>
+        </div>
+    </div>
+    <div id="collection-modal" class="modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="modal-backdrop fixed inset-0 bg-black/70"></div>
+        <div
+            class="modal-content bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-2xl relative border border-slate-700">
+            <button id="close-collection-modal"
+                class="absolute top-3 right-4 text-slate-400 hover:text-white text-3xl transition-colors">&times;</button>
+            <h3 class="text-2xl font-bold text-center mb-6">Koleksiyonum</h3>
+            <div id="collection-grid"
+                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto pr-2"></div>
+            <p id="empty-collection-message" class="text-center text-slate-400 mt-4 hidden">Henüz bir şey kazanmadın.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const moneyDisplay = document.getElementById('money-display');
+        const clicker = document.getElementById('clicker');
+        const clickerContainer = document.getElementById('clicker-container');
+        const cardContainer = document.getElementById('card-container');
+        const upgradesContainer = document.getElementById('upgrades-container');
+        const idleIncomeDisplay = document.getElementById('idle-income-display');
+
+        // State Variables
+        let actualMoney = 0;
+        let displayMoney = 0;
+        let collection = [];
+        let totalIdleIncome = 0;
+
+        // Data
+        const silverPrizes = [
+            { name: "Kobra Maho", img: "kurdiberk.png", price: 5, chance: 65, rarity: 'common' },
+            { name: "Guresci Maho", img: "guresci.png", price: 500, chance: 1, rarity: 'legendary' },
+            { name: "MahOwO", img: "ali owo.png", price: 100, chance: 34, rarity: 'uncommon' }
+
+        ];
+
+        const goldPrizes = [
+            { name: "Kasli Maho", img: "kasli.png", price: 150, chance: 65, rarity: 'common' },
+            { name: "MahOwO", img: "ali owo.png", price: 300, chance: 30, rarity: 'uncommon' },
+            { name: "Guresci Maho", img: "guresci.png", price: 500, chance: 5, rarity: 'legendary' },
+
+        ];
+
+        const diamondPrizes = [
+            { name: "LVL2 Kobra Maho", img: "kurdiberk.png", price: 250, chance: 20, rarity: 'common' },
+            { name: "Guresci Maho", img: "guresci.png", price: 500, chance: 10, rarity: 'legendary' },
+            { name: "Billie Maho", img: "billie ali.png", price: 3000, chance: 2, rarity: 'legendary' }
+        ];
+
+        const cardTypes = [
+            {
+                name: "Gümüş Kağıt", cost: 100, color: "slate", icon: "💩",
+                prizeArray: silverPrizes
+            },
+            {
+                name: "Altın Kağıt", cost: 250, color: "amber", icon: "🌟",
+                prizeArray: goldPrizes
+            },
+            {
+                name: "Elmas Kağıt", cost: 500, color: "sky", icon: "💎",
+                prizeArray: diamondPrizes
+            },
+        ];
+        const initialUpgrades = [
+            { id: 'goblin', name: 'Goblin Madenci', baseCost: 100, income: 0.5, level: 0, maxLevel: 10 },
+            { id: 'dwarf', name: 'Cüce Demirci', baseCost: 500, income: 3, level: 0, maxLevel: 10 },
+            { id: 'alchemist', name: 'Simyacı Laboratuvarı', baseCost: 2000, income: 15, level: 0, maxLevel: 5 }
+        ];
+        let upgrades = JSON.parse(JSON.stringify(initialUpgrades)); // Deep copy for manipulation
+
+        // --- CORE GAME LOOP & UI ---
+        function gameLoop() {
+            const lerpFactor = 0.1;
+            displayMoney += (actualMoney - displayMoney) * lerpFactor;
+            if (Math.abs(actualMoney - displayMoney) < 0.01) displayMoney = actualMoney;
+            moneyDisplay.textContent = `${displayMoney.toFixed(2)} ₺`;
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateAllUI() {
+            renderCards();
+            renderUpgrades();
+            idleIncomeDisplay.textContent = `${totalIdleIncome.toFixed(2)} ₺/s`;
+        }
+
+        // --- CLICKER LOGIC ---
+        clicker.addEventListener('click', (e) => {
+            const increment = 1;
+            actualMoney += increment;
+            const feedback = document.createElement('div');
+            feedback.className = 'click-feedback';
+            feedback.textContent = `+${increment}`;
+            feedback.style.left = `${e.offsetX}px`;
+            feedback.style.top = `${e.offsetY}px`;
+            clickerContainer.appendChild(feedback);
+            setTimeout(() => feedback.remove(), 600);
+            updateAllUI();
+        });
+
+        // --- SCRATCH CARD LOGIC ---
+        function renderCards() {
+            cardContainer.innerHTML = '';
+            cardTypes.forEach(card => {
+                const canAfford = actualMoney >= card.cost;
+                const cardElement = document.createElement('div');
+                cardElement.className = `card p-6 rounded-xl text-center border-2 bg-slate-800/80 border-${card.color}-500 ${canAfford ? 'cursor-pointer' : 'disabled-card'}`;
+                cardElement.innerHTML = `<div class="text-5xl mb-4">${card.icon}</div><h3 class="text-xl font-bold text-white">${card.name}</h3><p class="text-${card.color}-400 font-semibold mt-2">${card.cost.toFixed(2)} ₺</p>`;
+                if (canAfford) cardElement.onclick = () => buyCard(card);
+                cardContainer.appendChild(cardElement);
+            });
+        }
+        function buyCard(card) {
+            if (actualMoney >= card.cost) {
+                actualMoney -= card.cost;
+                updateAllUI();
+                openScratchModal(card);
+            }
+        }
+
+        // --- UPGRADES & IDLE INCOME ---
+        function renderUpgrades() {
+            upgradesContainer.innerHTML = '';
+            upgrades.forEach(upgrade => {
+                const currentCost = Math.ceil(upgrade.baseCost * Math.pow(1.5, upgrade.level));
+                const canAfford = actualMoney >= currentCost;
+                const isMaxed = upgrade.level >= upgrade.maxLevel;
+                const upgradeEl = document.createElement('div');
+                upgradeEl.className = `upgrade-card flex items-center justify-between p-3 rounded-lg bg-slate-700/50 border border-slate-600 ${canAfford && !isMaxed ? 'cursor-pointer' : 'disabled-card'}`;
+                upgradeEl.innerHTML = `
+                    <div>
+                        <p class="font-bold text-white">${upgrade.name} (Lvl ${upgrade.level})</p>
+                        <p class="text-xs text-green-400">+${upgrade.income.toFixed(2)} ₺/s</p>
+                    </div>
+                    <button class="bg-slate-600 text-sm text-amber-400 font-semibold px-3 py-1 rounded-md">${isMaxed ? 'MAX' : `${currentCost.toFixed(0)} ₺`}</button>`;
+                if (canAfford && !isMaxed) upgradeEl.onclick = () => buyUpgrade(upgrade.id);
+                upgradesContainer.appendChild(upgradeEl);
+            });
+        }
+        function buyUpgrade(upgradeId) {
+            const upgrade = upgrades.find(u => u.id === upgradeId);
+            const currentCost = Math.ceil(upgrade.baseCost * Math.pow(1.5, upgrade.level));
+            if (actualMoney >= currentCost && upgrade.level < upgrade.maxLevel) {
+                actualMoney -= currentCost;
+                upgrade.level++;
+                recalculateIdleIncome();
+                updateAllUI();
+            }
+        }
+        function recalculateIdleIncome() {
+            totalIdleIncome = upgrades.reduce((total, u) => total + (u.level * u.income), 0);
+        }
+
+        // --- COIN FLIP LOGIC ---
+        const coin = document.getElementById('coin');
+        const coinFlipResult = document.getElementById('coin-flip-result');
+        const betAmountInput = document.getElementById('bet-amount');
+        let isFlipping = false;
+
+        document.getElementById('heads-btn').addEventListener('click', () => playCoinFlip('Yazı'));
+        document.getElementById('tails-btn').addEventListener('click', () => playCoinFlip('Tura'));
+
+        function playCoinFlip(choice) {
+            if (isFlipping) return;
+            const bet = parseFloat(betAmountInput.value);
+            if (isNaN(bet) || bet <= 0) { coinFlipResult.textContent = "Geçersiz Bahis!"; coinFlipResult.style.color = "#ef4444"; return; }
+            if (actualMoney < bet) { coinFlipResult.textContent = "Yetersiz Para!"; coinFlipResult.style.color = "#ef4444"; return; }
+            isFlipping = true; actualMoney -= bet; coinFlipResult.textContent = ""; coin.classList.add('flipping'); coin.textContent = '?';
+            setTimeout(() => {
+                const result = Math.random() < 0.5 ? 'Yazı' : 'Tura';
+                coin.classList.remove('flipping'); coin.textContent = result === 'Yazı' ? 'Y' : 'T';
+                if (result === choice) {
+                    coinFlipResult.textContent = `Kazandın! (+${(bet * 2).toFixed(2)} ₺)`;
+                    coinFlipResult.style.color = "#22c55e"; actualMoney += bet * 2;
+                } else {
+                    coinFlipResult.textContent = `Kaybettin! (-${bet.toFixed(2)} ₺)`;
+                    coinFlipResult.style.color = "#ef4444";
+                }
+                isFlipping = false; updateAllUI();
+            }, 1000);
+        }
+
+        // --- COLLECTION & SELLING LOGIC ---
+        const collectionModal = document.getElementById('collection-modal');
+        const collectionGrid = document.getElementById('collection-grid');
+        const emptyCollectionMessage = document.getElementById('empty-collection-message');
+
+        function renderCollection() {
+            collectionGrid.innerHTML = '';
+            if (collection.length === 0) {
+                emptyCollectionMessage.classList.remove('hidden');
+                return;
+            }
+            emptyCollectionMessage.classList.add('hidden');
+            collection.forEach((item, index) => {
+                const salePrice = item.price * 0.7;
+                const rarityClass = `rarity-${item.rarity}`;
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex flex-col items-center bg-slate-700 p-2 rounded-lg text-center border-b-4 border-transparent';
+                itemDiv.innerHTML = `
+                    <img src="${item.img}" alt="${item.name}" class="w-full h-20 object-cover rounded-md mb-2">
+                    <p class="text-xs font-semibold flex-grow ${rarityClass}">${item.name}</p>
+                    <p class="text-xs text-slate-400 mb-2">${item.price.toFixed(2)} ₺ Değer</p>
+                    <button data-index="${index}" class="sell-btn text-xs w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-1 px-2 rounded-md transition-colors">
+                        Sat (${salePrice.toFixed(2)} ₺)
+                    </button>`;
+                collectionGrid.appendChild(itemDiv);
+            });
+        }
+        collectionGrid.addEventListener('click', function (e) {
+            if (e.target && e.target.classList.contains('sell-btn')) {
+                const itemIndex = parseInt(e.target.dataset.index);
+                sellItem(itemIndex);
+            }
+        });
+        function sellItem(index) {
+            const item = collection[index];
+            if (!item) return;
+            const salePrice = item.price * 0.7;
+            actualMoney += salePrice;
+            collection.splice(index, 1);
+            renderCollection();
+            updateAllUI();
+        }
+
+        // --- MODAL & CANVAS LOGIC ---
+        const scratchModal = document.getElementById('scratch-modal');
+        const closeScratchModalBtn = document.getElementById('close-scratch-modal');
+        const scratchCanvas = document.getElementById('scratch-canvas');
+        const prizeImage = document.getElementById('prize-image');
+        const modalTitle = document.getElementById('modal-title');
+        const winMessage = document.getElementById('win-message');
+        const ctx = scratchCanvas.getContext('2d');
+        let isDrawing = false;
+
+        function getRandomPrize(prizeArray) {
+            const random = Math.random() * 100; // 0 ile 100 arasında rastgele bir sayı
+            let cumulativeChance = 0;
+            for (const prize of prizeArray) {
+                cumulativeChance += prize.chance;
+                if (random < cumulativeChance) {
+                    return prize;
+                }
+            }
+        }
+
+        function openScratchModal(card) {
+            const prize = getRandomPrize(card.prizeArray);
+            modalTitle.textContent = card.name;
+            prizeImage.src = prize.img;
+            winMessage.classList.add('hidden');
+            scratchModal.classList.remove('modal-hidden');
+            scratchModal.dataset.revealed = 'false';
+            prizeImage.onload = () => {
+                setupCanvas();
+                scratchModal.dataset.prize = JSON.stringify(prize);
+            };
+        }
+        function closeScratchModal() { scratchModal.classList.add('modal-hidden'); }
+        closeScratchModalBtn.addEventListener('click', closeScratchModal);
+
+        function setupCanvas() {
+            const { clientWidth, clientHeight } = prizeImage;
+            scratchCanvas.width = clientWidth;
+            scratchCanvas.height = clientHeight;
+            // FIX: Reset composite operation to default to ensure the fillRect draws the scratch layer
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = '#7f8c8d';
+            ctx.fillRect(0, 0, clientWidth, clientHeight);
+            // FIX: Set composite operation to 'erase' mode for scratching
+            ctx.globalCompositeOperation = 'destination-out';
+        }
+        function getScratchPosition(event) {
+            const rect = scratchCanvas.getBoundingClientRect();
+            const scaleX = scratchCanvas.width / rect.width;
+            const scaleY = scratchCanvas.height / rect.height;
+            const touch = event.touches ? event.touches[0] : event;
+            return { x: (touch.clientX - rect.left) * scaleX, y: (touch.clientY - rect.top) * scaleY };
+        }
+        function scratch(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const pos = getScratchPosition(e);
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, 25, 0, Math.PI * 2); // Slightly larger radius
+            ctx.fill();
+        }
+
+        function checkScratchPercentage() {
+            if (scratchModal.dataset.revealed === 'true') return;
+            const pixels = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+            const data = pixels.data;
+            let transparentPixels = 0;
+            for (let i = 0, n = data.length; i < n; i += 4) {
+                if (data[i + 3] < 128) transparentPixels++;
+            }
+            const percentage = (transparentPixels / (scratchCanvas.width * scratchCanvas.height)) * 100;
+            if (percentage > 45) {
+                scratchModal.dataset.revealed = 'true';
+                revealPrize();
+            }
+        }
+
+        function revealPrize() {
+            ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+            isDrawing = false;
+            const prize = JSON.parse(scratchModal.dataset.prize);
+            const rarityClass = `rarity-${prize.rarity}`;
+            winMessage.innerHTML = `Tebrikler! <span class="${rarityClass} font-bold">"${prize.name}"</span> kazandın!`;
+            winMessage.classList.remove('hidden');
+            // FIX: Always add the prize to the collection, allowing duplicates.
+            collection.push(prize);
+            renderCollection();
+        }
+
+        scratchCanvas.addEventListener('mousedown', (e) => { isDrawing = true; scratch(e); });
+        scratchCanvas.addEventListener('mousemove', scratch);
+        window.addEventListener('mouseup', () => { if (isDrawing) { isDrawing = false; checkScratchPercentage(); } });
+        scratchCanvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); });
+        scratchCanvas.addEventListener('touchmove', scratch);
+        window.addEventListener('touchend', () => { if (isDrawing) { isDrawing = false; checkScratchPercentage(); } });
+
+        document.getElementById('collection-btn').addEventListener('click', () => collectionModal.classList.remove('modal-hidden'));
+        document.getElementById('close-collection-modal').addEventListener('click', () => collectionModal.classList.add('modal-hidden'));
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', () => {
+            scratchModal.classList.add('modal-hidden');
+            collectionModal.classList.add('modal-hidden');
+        }));
+
+        // --- SAVE & LOAD SYSTEM ---
+        function saveGame() {
+            const saveData = {
+                money: actualMoney,
+                collection: collection,
+                upgrades: upgrades.map(u => ({ id: u.id, level: u.level }))
+            };
+            localStorage.setItem('yagaKazanSave', JSON.stringify(saveData));
+        }
+
+        function loadGame() {
+            const savedData = localStorage.getItem('yagaKazanSave');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                actualMoney = data.money || 0;
+                displayMoney = actualMoney;
+                collection = data.collection || [];
+                if (data.upgrades) {
+                    data.upgrades.forEach(savedUpgrade => {
+                        const gameUpgrade = upgrades.find(u => u.id === savedUpgrade.id);
+                        if (gameUpgrade) gameUpgrade.level = savedUpgrade.level;
+                    });
+                }
+            }
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            loadGame();
+            recalculateIdleIncome();
+            updateAllUI();
+            renderCollection();
+            requestAnimationFrame(gameLoop);
+            setInterval(saveGame, 5000); // Save every 5 seconds
+        };
+    </script>
+        <script>
+        window.onload = function() {
+            document.getElementById("popup-bg").style.display = "flex";
+        }
+
+        document.getElementById("popup-btn").onclick = function() {
+            document.getElementById("popup-bg").style.display = "none";
+        }
+    </script>
+</body>
+       
+</html>

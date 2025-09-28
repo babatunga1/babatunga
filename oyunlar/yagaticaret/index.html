@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAGASHOP - Hayallerinizdeki Maholar Galerisi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden; /* Yatay scrollbar'ı engelle */
+        }
+                #popup-bg {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        /* Popup kutusu */
+        #popup-box {
+            background: rgb(44, 44, 44);
+            padding: 20px;
+            max-width: 400px;
+            border-radius: 15px;
+            box-shadow: 0px 5px 20px rgba(0,0,0,0.3);
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        #popup-box p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        #popup-btn {
+            padding: 10px 20px;
+            background-color: #0078ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        #popup-btn:hover {
+            background-color: #005ec7;
+        }
+        .hero-bg {
+            background: linear-gradient(to bottom, rgba(17, 24, 39, 0.9), rgba(17, 24, 39, 1)), url('https://placehold.co/1920x1080/111827/FFFFFF?text=HAYALINIZDEKI+MAHOYU+HISSEDIN') no-repeat center center;
+            background-size: cover;
+        }
+        .card-glow {
+            transition: all 0.3s ease-in-out;
+        }
+        .card-glow:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.5), 0 0 40px rgba(59, 130, 246, 0.3);
+        }
+        .text-glow {
+             text-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+        }
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(59, 130, 246, 0.8); }
+            100% { transform: scale(1); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
+        }
+        .clicker-btn {
+            animation: pulse 2s infinite ease-in-out;
+        }
+        .clicker-btn:active {
+            transform: scale(0.95);
+            animation: none;
+        }
+
+        /* Floating Text Animation */
+        .floating-text {
+            position: absolute;
+            font-weight: bold;
+            color: #22c55e; /* green-500 */
+            font-size: 1.5rem;
+            pointer-events: none;
+            user-select: none;
+            animation: floatUp 1.5s ease-out forwards;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        @keyframes floatUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-80px);
+            }
+        }
+        
+        /* Card Flip Game Styles */
+        .game-card-container { perspective: 1000px; }
+        .game-card {
+            width: 120px;
+            height: 180px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+        .game-card.flipped { transform: rotateY(180deg); }
+        .game-card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            border: 2px solid #3b82f6;
+        }
+        .game-card-front {
+            background: #374151; /* gray-700 */
+            font-size: 3rem;
+        }
+        .game-card-back {
+            background: #1f2937; /* gray-800 */
+            transform: rotateY(180deg);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .win { background-color: #16a34a; /* green-600 */ }
+        .lose { background-color: #dc2626; /* red-600 */ }
+
+        /* Modal Styles */
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <!-- Header -->
+    <header class="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex-1">
+                 <h1 class="text-3xl font-bold tracking-tighter text-blue-400 text-glow">
+                    YAGA <span class="text-white">SHOP</span>
+                </h1>
+            </div>
+            <div class="flex-shrink-0">
+                <div class="flex items-center space-x-6 bg-gray-800/50 px-4 py-2 rounded-lg border border-gray-700">
+                    <div>
+                        <span class="text-sm text-gray-400">Bakiyen</span>
+                        <p id="balance" class="font-bold text-lg text-green-400">0 TL</p>
+                    </div>
+                    <div class="border-l border-gray-600 h-8"></div>
+                    <div id="inventory-btn" class="cursor-pointer">
+                        <span class="text-sm text-gray-400">Koleksiyon</span>
+                        <p id="inventory" class="font-bold text-lg text-blue-400">0 Maho</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 hidden md:flex items-center justify-end space-x-8">
+                <a href="#cars" class="text-gray-300 hover:text-blue-400 transition duration-300">Showroom</a>
+                <a href="#about" class="text-gray-300 hover:text-blue-400 transition duration-300">Hakkımızda</a>
+                <a href="#contact" class="text-gray-300 hover:text-blue-400 transition duration-300">İletişim</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-bg py-32 md:py-48 text-center">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl md:text-6xl font-black uppercase tracking-wider text-white">
+                Hayallerin Bir Adım <span class="text-blue-400 text-glow">Ötesinde</span>
+            </h2>
+            <p class="mt-4 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
+                En iyi Maholer, en iyi fiyatlarla YAGASHOP'ta sizi bekliyor.
+            </p>
+            <a href="#mining" class="mt-8 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105">
+                Madenciliğe Başla
+            </a>
+        </div>
+    </section>
+    <div id="popup-bg">
+        <div id="popup-box">
+            <p>Sitemizdeki değişimi fark ettiğinizi biliyoruz.<br>
+                Kullanılan fotoğrafları telif hakları sebebiyle değiştirmek zorunda kaldık.<br>
+                Değişiklik için kusura bakmayın.</p>
+            <button id="popup-btn">Tamam</button>
+        </div>
+    </div>
+    <!-- Mining Section -->
+    <section id="mining" class="py-20 md:py-28 text-center bg-gray-800/20">
+         <div class="container mx-auto px-6 reveal">
+            <h3 class="text-4xl font-bold tracking-tight">Maho Madenciliği</h3>
+            <p class="text-gray-400 mt-2 max-w-2xl mx-auto">Hayalindeki Maho'yu satın almak için buraya tıkla ve bakiyeni artır!</p>
+            <div class="mt-12">
+                <button id="clicker-button" class="clicker-btn w-48 h-48 bg-blue-600 rounded-full text-white font-black text-2xl border-4 border-blue-400 shadow-lg focus:outline-none transition duration-300">
+                    KAZAN
+                </button>
+            </div>
+         </div>
+    </section>
+    
+    <!-- New Card Game Section -->
+    <section id="card-game" class="py-20 md:py-28 text-center">
+        <div class="container mx-auto px-6 reveal">
+            <h3 class="text-4xl font-bold tracking-tight">Şansını Dene!</h3>
+            <p class="text-gray-400 mt-2 max-w-2xl mx-auto">Doğru kartı bul, parayı katla! Kazanma oranı 2x.</p>
+            <div id="game-controls" class="mt-8 flex justify-center items-center gap-4">
+                <input type="number" id="bet-amount" placeholder="Bahis Miktarı" class="bg-gray-800 rounded-lg p-3 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-center w-48">
+                <button id="play-game-btn" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg transition duration-300">Oyna</button>
+            </div>
+            <p id="game-message" class="mt-4 text-xl h-8"></p>
+            <div id="game-board" class="mt-8 flex justify-center gap-8">
+                <!-- Cards will be generated by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Cars Section -->
+    <main id="cars" class="py-20 md:py-28">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 reveal">
+                 <h3 class="text-4xl font-bold tracking-tight">Showroom</h3>
+                 <p class="text-gray-400 mt-2">Özenle seçilmiş koleksiyonumuza göz atın.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <div class="card-glow bg-gray-800 rounded-2xl overflow-hidden border border-gray-700/50 reveal">
+                    <img src="kurdiberk.png" alt="Dağlı Berk" class="w-full h-56 object-cover">
+                    <div class="p-6">
+                        <h4 class="text-2xl font-bold text-white">Maho Maho</h4>
+                        <p class="text-gray-400 mt-1">Topraklı ve Hain</p>
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="text-3xl font-black text-blue-400 text-glow">100.000 TL</span>
+                            <button class="buy-btn bg-gray-700 hover:bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg transition duration-300" data-price="100000" data-name="Apo Berk">Satın Al</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-glow bg-gray-800 rounded-2xl overflow-hidden border border-gray-700/50 reveal" style="transition-delay: 150ms;">
+                    <img src="bellaberk.png" alt="Bella Berk" class="w-full h-56 object-cover">
+                    <div class="p-6">
+                        <h4 class="text-2xl font-bold text-white">Maho Poarch</h4>
+                        <p class="text-gray-400 mt-1">Para ve Prestij</p>
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="text-3xl font-black text-blue-400 text-glow">300.000 TL</span>
+                            <button class="buy-btn bg-gray-700 hover:bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg transition duration-300" data-price="300000" data-name="Bella Berk">Satın Al</button>
+                        </div>
+                    </div>
+                </div>
+<div class="card-glow bg-gray-800 rounded-2xl overflow-hidden border border-gray-700/50 reveal" style="transition-delay: 150ms;">
+                    <img src="guresci.png" alt="Guresci Berk" class="w-full h-56 object-cover">
+                    <div class="p-6">
+                        <h4 class="text-2xl font-bold text-white">Gures Maho</h4>
+                        <p class="text-gray-400 mt-1">Para ve Prestij</p>
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="text-3xl font-black text-blue-400 text-glow">500.000 TL</span>
+                            <button class="buy-btn bg-gray-700 hover:bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg transition duration-300" data-price="500000" data-name="Güreşçi Berk">Satın Al</button>
+                        </div>
+                    </div>
+                </div>
+<div class="card-glow bg-gray-800 rounded-2xl overflow-hidden border border-gray-700/50 reveal" style="transition-delay: 150ms;">
+                    <img src="kasli.png" alt="kasli" class="w-full h-56 object-cover">
+                    <div class="p-6">
+                        <h4 class="text-2xl font-bold text-white">Kasli Maho</h4>
+                        <p class="text-gray-400 mt-1">Güç ve Ün</p>
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="text-3xl font-black text-blue-400 text-glow">600.000 TL</span>
+                            <button class="buy-btn bg-gray-700 hover:bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg transition duration-300" data-price="600.000" data-name="Kaslı Berk">Satın Al</button>
+                        </div>
+                    </div>
+                </div>
+<div class="card-glow bg-gray-800 rounded-2xl overflow-hidden border border-gray-700/50 reveal" style="transition-delay: 150ms;">
+                    <img src="ali owo.png" alt="ali owo" class="w-full h-56 object-cover">
+                    <div class="p-6">
+                        <h4 class="text-2xl font-bold text-white">MahOwO</h4>
+                        <p class="text-gray-400 mt-1">Güzellik ve Çekicilik</p>
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="text-3xl font-black text-blue-400 text-glow">1.000.000 TL</span>
+                            <button class="buy-btn bg-gray-700 hover:bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg transition duration-300" data-price="1000000" data-name="Ali OwO">Satın Al</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-glow bg-gray-800 rounded-2xl overflow-hidden border border-gray-700/50 reveal" style="transition-delay: 300ms;">
+                    <img src="billie ali.png" alt="Aliberkcar-3" class="w-full h-56 object-cover">
+                    <div class="p-6">
+                        <h4 class="text-2xl font-bold text-white">Maho Eilish</h4>
+                        <p class="text-gray-400 mt-1">Müzik ve Para</p>
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="text-3xl font-black text-blue-400 text-glow">100.000.000 TL</span>
+                            <button class="buy-btn bg-gray-700 hover:bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg transition duration-300" data-price="100000000" data-name="Billie Berk">Satın Al</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- About Us & Contact... Sections remain the same -->
+    <section id="about" class="py-20 md:py-28 bg-gray-800/20">
+        <div class="container mx-auto px-6 text-center">
+            <div class="reveal">
+                <h3 class="text-4xl font-bold tracking-tight">Biz Kimiz?</h3>
+                <p class="text-gray-400 mt-4 max-w-3xl mx-auto">Maho sevdamızdan doğan bu özel yeteneğimiz ile sizlere en iyi Maho'leri sunabilmek için gurur ile çalışıyoruz.</p>
+            </div>
+            <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="reveal bg-gray-800/50 p-8 rounded-xl border border-gray-700/50">
+                    <h4 class="text-5xl font-black text-blue-400 counter" data-target="31938492">0</h4>
+                    <p class="text-gray-300 mt-2">Satılan Maho</p>
+                </div>
+                <div class="reveal bg-gray-800/50 p-8 rounded-xl border border-gray-700/50" style="transition-delay: 150ms;">
+                    <h4 class="text-5xl font-black text-blue-400 counter" data-target="114:30 18.09.2025">0</h4>
+                    <p class="text-gray-300 mt-2">% Mutlu Müşteri</p>
+                </div>
+                 <div class="reveal bg-gray-800/50 p-8 rounded-xl border border-gray-700/50" style="transition-delay: 300ms;">
+                    <h4 class="text-5xl font-black text-blue-400 counter" data-target="12">sa</h4>
+                    <p class="text-gray-300 mt-2">Asırlık Tecrübe</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="contact" class="py-20 md:py-28">
+         <div class="container mx-auto px-6">
+             <div class="text-center mb-16 reveal">
+                 <h3 class="text-4xl font-bold tracking-tight">İletişime Geçin</h3>
+                 <p class="text-gray-400 mt-2">Hayalinizdeki Maho için bize ulaşın.</p>
+             </div>
+             <form class="max-w-xl mx-auto reveal">
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <input type="text" placeholder="Adınız" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                     <input type="email" placeholder="E-posta Adresiniz" class="w-full bg-gray-800 rounded-lg p-3 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                 </div>
+                 <textarea placeholder="Mesajınız..." rows="5" class="w-full mt-6 bg-gray-800 rounded-lg p-3 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"></textarea>
+                 <div class="text-center mt-6">
+                      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-12 rounded-lg transition duration-300 transform hover:scale-105">Gönder</button>
+                 </div>
+             </form>
+         </div>
+    </section>
+    <footer class="bg-gray-900 border-t border-gray-800 py-8">
+        <div class="container mx-auto px-6 text-center text-gray-400">
+            <p>&copy; 2025 YAGASHOP. Tüm hakları saklıdır.</p>
+            <p class="text-sm mt-1">Bir hayalin başlangıcı.</p>
+        </div>
+    </footer>
+
+    <!-- Inventory Modal -->
+    <div id="inventory-modal" class="modal fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none">
+        <div class="bg-gray-800 rounded-2xl w-full max-w-md p-6 border border-gray-700 transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-4">
+                 <h3 class="text-2xl font-bold">Koleksiyonum</h3>
+                 <button id="close-modal-btn" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <div id="modal-inventory-list" class="space-y-2">
+                <p class="text-gray-400">Henüz hiç Maho satın almadın.</p>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- STATE MANAGEMENT ---
+        let balance = 0;
+        let inventory = {}; // Switched to object for detailed tracking
+        const clickValue = 1000;
+
+        // --- DOM ELEMENTS ---
+        const balanceEl = document.getElementById('balance');
+        const inventoryEl = document.getElementById('inventory');
+        const clickerButton = document.getElementById('clicker-button');
+        const buyButtons = document.querySelectorAll('.buy-btn');
+        const inventoryBtn = document.getElementById('inventory-btn');
+        const inventoryModal = document.getElementById('inventory-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalInventoryList = document.getElementById('modal-inventory-list');
+        
+        // Card Game Elements
+        const playGameBtn = document.getElementById('play-game-btn');
+        const betAmountInput = document.getElementById('bet-amount');
+        const gameBoard = document.getElementById('game-board');
+        const gameMessage = document.getElementById('game-message');
+
+        // --- SAVE / LOAD ---
+        function saveState() {
+            localStorage.setItem('balance', balance);
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+        }
+
+        function loadState() {
+            const savedBalance = localStorage.getItem('balance');
+            const savedInventory = localStorage.getItem('inventory');
+
+            if (savedBalance) balance = parseInt(savedBalance);
+            if (savedInventory) inventory = JSON.parse(savedInventory);
+
+            updateDisplay();
+        }
+
+        // --- UI UPDATE FUNCTIONS ---
+        function updateDisplay(options = { animateBalance: false }) {
+            const totalInventory = Object.values(inventory).reduce((sum, count) => sum + count, 0);
+            inventoryEl.textContent = `${totalInventory} Maho`;
+            updateInventoryModal();
+
+            const targetBalance = balance;
+            const startBalance = parseInt(balanceEl.textContent.replace(/\./g, '').replace(' TL', '')) || 0;
+
+            // Kaydet
+            saveState();
+
+            if (options.animateBalance && targetBalance !== startBalance) {
+                let currentAmount = startBalance;
+                const diff = targetBalance - startBalance;
+                const step = Math.max(Math.floor(diff / 200), 1); // Hızlı ve miktara göre
+                const speed = 1; // ms
+
+                const counter = setInterval(() => {
+                    currentAmount += step;
+                    if ((step > 0 && currentAmount >= targetBalance) || (step < 0 && currentAmount <= targetBalance)) {
+                        currentAmount = targetBalance;
+                        clearInterval(counter);
+                    }
+                    balanceEl.textContent = `${currentAmount.toLocaleString('tr-TR')} TL`;
+                }, speed);
+            } else {
+                balanceEl.textContent = `${targetBalance.toLocaleString('tr-TR')} TL`;
+            }
+        }
+
+        function updateInventoryModal() {
+            if (Object.keys(inventory).length === 0) {
+                modalInventoryList.innerHTML = '<p class="text-gray-400">Henüz hiç Maho satın almadın.</p>';
+            } else {
+                modalInventoryList.innerHTML = '';
+                for (const [name, count] of Object.entries(inventory)) {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'flex justify-between items-center bg-gray-700/50 p-3 rounded-lg';
+                    itemEl.innerHTML = `<span class="font-semibold">${name}</span> <span class="font-bold text-blue-400">${count} adet</span>`;
+                    modalInventoryList.appendChild(itemEl);
+                }
+            }
+        }
+
+        // Clicker button
+        clickerButton.addEventListener('click', (e) => {
+            balance += clickValue;
+            updateDisplay({ animateBalance: true }); // Animate the click
+
+            const floatingText = document.createElement('div');
+            floatingText.className = 'floating-text';
+            floatingText.textContent = `+${clickValue.toLocaleString('tr-TR')}`;
+            document.body.appendChild(floatingText);
+
+            floatingText.style.left = `${e.clientX - floatingText.clientWidth / 2}px`;
+            floatingText.style.top = `${e.clientY - floatingText.clientHeight / 2}px`;
+
+            setTimeout(() => {
+                floatingText.remove();
+            }, 1500);
+        });
+
+        // Buy buttons
+        buyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const price = parseInt(button.dataset.price);
+                const name = button.dataset.name;
+                
+                if (balance >= price) {
+                    balance -= price;
+                    inventory[name] = (inventory[name] || 0) + 1;
+                    updateDisplay(); // Update + Save
+                    
+                    const originalText = button.textContent;
+                    button.textContent = 'Alındı!';
+                    button.classList.add('bg-green-600');
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('bg-green-600');
+                    }, 2000);
+
+                } else {
+                    const originalText = button.textContent;
+                    button.textContent = 'Yetersiz Bakiye!';
+                    button.classList.add('bg-red-600');
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('bg-red-600');
+                    }, 2000);
+                }
+            });
+        });
+
+        // Inventory Modal
+        inventoryBtn.addEventListener('click', () => {
+            inventoryModal.classList.remove('opacity-0', 'pointer-events-none');
+            inventoryModal.querySelector('div').classList.remove('scale-95');
+        });
+
+        const closeModal = () => {
+            inventoryModal.classList.add('opacity-0', 'pointer-events-none');
+            inventoryModal.querySelector('div').classList.add('scale-95');
+        };
+        closeModalBtn.addEventListener('click', closeModal);
+        inventoryModal.addEventListener('click', (e) => {
+            if (e.target === inventoryModal) closeModal();
+        });
+
+        // --- CARD GAME ---
+        let gameInProgress = false;
+
+        function setupGameBoard() {
+            gameBoard.innerHTML = '';
+            for(let i=0; i<3; i++) {
+                const cardContainer = document.createElement('div');
+                cardContainer.className = 'game-card-container';
+                cardContainer.innerHTML = `
+                    <div class="game-card" data-id="${i}">
+                        <div class="game-card-face game-card-front">?</div>
+                        <div class="game-card-face game-card-back"></div>
+                    </div>
+                `;
+                gameBoard.appendChild(cardContainer);
+            }
+        }
+
+        playGameBtn.addEventListener('click', () => {
+            if (gameInProgress) return;
+            const bet = parseInt(betAmountInput.value);
+
+            if (isNaN(bet) || bet <= 0) {
+                gameMessage.textContent = 'Geçerli bir bahis girin!';
+                gameMessage.style.color = '#facc15'; // yellow-400
+                return;
+            }
+            if (balance < bet) {
+                gameMessage.textContent = 'Yetersiz bakiye!';
+                gameMessage.style.color = '#ef4444'; // red-500
+                return;
+            }
+
+            balance -= bet;
+            gameInProgress = true;
+            gameMessage.textContent = 'Doğru kartı seç!';
+            gameMessage.style.color = 'white';
+            updateDisplay(); // Save state
+            setupGameBoard();
+
+            const winningCard = Math.floor(Math.random() * 3);
+            const cards = gameBoard.querySelectorAll('.game-card');
+
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    if (!gameInProgress) return;
+                    
+                    gameInProgress = false;
+                    const cardId = parseInt(card.dataset.id);
+                    
+                    cards.forEach((c, index) => {
+                        const backFace = c.querySelector('.game-card-back');
+                        if (index === winningCard) {
+                            backFace.innerHTML = '🏆<br>Kazandın!';
+                            backFace.classList.add('win');
+                        } else {
+                            backFace.innerHTML = '❌<br>Kaybettin';
+                            backFace.classList.add('lose');
+                        }
+                        c.classList.add('flipped');
+                    });
+
+                    if (cardId === winningCard) {
+                        const winnings = bet * 2;
+                        balance += winnings;
+                        gameMessage.textContent = `Tebrikler! ${winnings.toLocaleString('tr-TR')} TL kazandın!`;
+                        gameMessage.style.color = '#22c55e'; // green-500
+                        updateDisplay({ animateBalance: true }); 
+                    } else {
+                        gameMessage.textContent = `Kaybettin! ${bet.toLocaleString('tr-TR')} TL gitti.`;
+                        gameMessage.style.color = '#ef4444'; // red-500
+                        updateDisplay(); // Save kaybı
+                    }
+                    
+                    playGameBtn.textContent = 'Tekrar Oyna';
+                    setTimeout(() => gameInProgress = false, 1500);
+                }, { once: true });
+            });
+        });
+
+        // --- ANIMATIONS ---
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        const counters = document.querySelectorAll('.counter');
+        const counterObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counter = entry.target;
+                    const animate = () => {
+                        const target = +counter.getAttribute('data-target');
+                        const count = +counter.innerText.replace(/\./g, '');
+                        const increment = target / 200;
+                        if(count < target) {
+                            counter.innerText = Math.ceil(count + increment).toLocaleString('tr-TR');
+                            setTimeout(animate, 10);
+                        } else {
+                            counter.innerText = target.toLocaleString('tr-TR');
+                        }
+                    }
+                    animate();
+                    observer.unobserve(counter);
+                }
+            });
+        }, { threshold: 0.5 });
+        counters.forEach(counter => counterObserver.observe(counter));
+        
+        // --- INITIALIZATION ---
+        loadState();  // ✅ Kaydedilmiş veriler yüklenir
+        setupGameBoard(); 
+    });
+</script>
+    </script>
+        <script>
+        window.onload = function() {
+            document.getElementById("popup-bg").style.display = "flex";
+        }
+
+        document.getElementById("popup-btn").onclick = function() {
+            document.getElementById("popup-bg").style.display = "none";
+        }
+    </script>
+</body>
+</html>
+

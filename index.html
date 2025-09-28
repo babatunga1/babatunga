@@ -1,42 +1,215 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MÜTHİŞ SİTENE HOŞGELDİNİZ!</title>
+<html lang="tr"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Yaga — Oyunlar</title>
   <style>
     :root{
-      --bg:#0f1724;
-      --card:#0b1220;
-      --accent:#06b6d4;
-      --text:#e6eef8;
+      --bg1: #0f172a;
+      --bg2: #07122a;
+      --accent: #8b5cf6;
+      --accent-2: #06b6d4;
+      --glass: rgba(255,255,255,0.04);
+      --glass-strong: rgba(255,255,255,0.06);
+      --muted: rgba(255,255,255,0.6);
+      --btn-radius: 16px;
     }
-    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;background:linear-gradient(180deg,var(--bg),#071029);color:var(--text);}
-    .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:3rem}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border-radius:16px;padding:2rem;max-width:820px;width:100%;box-shadow:0 10px 30px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
-    h1{margin:0 0 .5rem;font-size:clamp(1.4rem,3.6vw,2.25rem);letter-spacing:0.5px}
-    p{margin:0 0 1rem;opacity:.85}
-    .meta{display:flex;gap:.5rem;flex-wrap:wrap}
-    .btn{display:inline-block;padding:.6rem 1rem;border-radius:10px;background:transparent;border:1px solid var(--accent);color:var(--accent);text-decoration:none;font-weight:600}
-    footer{margin-top:1.25rem;font-size:.85rem;opacity:.7}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+
+    body{
+      background: radial-gradient(1200px 600px at 10% 20%, rgba(139,92,246,0.12), transparent 8%),
+                  radial-gradient(1000px 500px at 90% 80%, rgba(6,182,212,0.08), transparent 6%),
+                  linear-gradient(180deg,var(--bg1),var(--bg2));
+      color: white;
+      display:flex;align-items:center;justify-content:center;min-height:100vh;padding:30px;
+      overflow:hidden;
+    }
+
+    .stage{
+      width:100%;max-width:1200px;height:78vh;background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 40%);
+      border-radius:22px;padding:28px;display:grid;grid-template-columns:160px 1fr 160px;align-items:center;gap:20px;
+      box-shadow: 0 10px 40px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.03);
+      position:relative;overflow:hidden;
+    }
+
+    header{
+      position:absolute;left:28px;top:20px;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:12px;
+    }
+    .logo{font-size:18px;background:linear-gradient(90deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .site-name{font-size:14px;color:var(--muted)}
+
+    /* Side buttons */
+    .side-btn{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:var(--btn-radius);padding:18px 14px;text-align:center;cursor:pointer;user-select:none;
+      transition:transform .35s cubic-bezier(.2,.9,.2,1), box-shadow .35s;
+      box-shadow: 0 6px 18px rgba(2,6,23,0.55);
+      display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;position:relative;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .side-btn h3{margin:0;font-size:18px}
+    .side-btn p{margin:0;font-size:12px;color:var(--muted)}
+
+    .side-btn:hover{transform:translateY(-6px) scale(1.02);box-shadow:0 18px 40px rgba(0,0,0,0.6)}
+
+    /* Left / Right entrance */
+    .left-col{animation: slideInLeft .7s both .12s}
+    .right-col{animation: slideInRight .7s both .12s}
+
+    @keyframes slideInLeft{from{transform:translateX(-40px) translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+    @keyframes slideInRight{from{transform:translateX(40px) translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+
+    /* Center area */
+    .center{
+      display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;padding:34px;position:relative;
+    }
+    .preview-card{
+      width:100%;height:60%;background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;border:1px solid rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;position:relative;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.55);
+    }
+    .preview-card small{position:absolute;left:14px;top:12px;color:var(--muted);font-size:12px}
+
+    /* Center (featured) button — ihtişamlı */
+    .featured-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+    .featured{
+      --size:170px;
+      width:var(--size);height:var(--size);border-radius:999px;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;
+      background: radial-gradient(circle at 30% 20%, rgba(139,92,246,0.22), transparent 20%),
+                  linear-gradient(135deg, rgba(139,92,246,0.14), rgba(6,182,212,0.07));
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 20px 50px rgba(6,12,34,0.7), 0 0 30px rgba(139,92,246,0.09) inset;
+      transform: translateY(0);
+      transition: transform .25s ease, box-shadow .25s ease;
+      position:relative;z-index:6;overflow:visible;
+    }
+    .featured:hover{transform:translateY(-10px) scale(1.04);box-shadow: 0 30px 80px rgba(6,12,34,0.75), 0 0 48px rgba(139,92,246,0.14)}
+
+    .featured .label{font-weight:800;font-size:18px;letter-spacing:1px}
+    .featured .sub{font-size:12px;color:var(--muted);}
+
+    /* Glowing rings around featured */
+    .featured::before, .featured::after{
+      content:'';position:absolute;border-radius:999px;pointer-events:none;z-index:-1;left:50%;top:50%;transform:translate(-50%,-50%);
+    }
+    .featured::before{width:270px;height:270px;border:3px solid rgba(139,92,246,0.12);animation: spin 8s linear infinite}
+    .featured::after{width:340px;height:340px;border:2px dashed rgba(6,182,212,0.06);animation: spin-rev 10s linear infinite}
+    @keyframes spin{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+    @keyframes spin-rev{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(-360deg)}}
+
+    /* mini badges */
+    .badge{position:absolute;right:-18px;top:-12px;background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:8px 10px;border-radius:12px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+
+    /* Entrance for center */
+    .center-animation{animation: popIn .6s both .2s}
+    @keyframes popIn{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+
+    /* Small decorative floating particles created by JS */
+    .particles{pointer-events:none;position:absolute;inset:0;z-index:1}
+    .particle{position:absolute;border-radius:50%;opacity:0.9;filter:blur(6px);mix-blend-mode:screen}
+
+    /* Footer hint */
+    .hint{font-size:13px;color:var(--muted);text-align:center}
+
+    /* Responsive tweaking */
+    @media (max-width:880px){
+      .stage{grid-template-columns:1fr;grid-template-rows:110px 1fr 140px;padding:18px;height:86vh}
+      .left-col,.right-col{order:3}
+      .center{order:2}
+    }
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <section class="card">
-      <h1>Site hâlâ geliştirme aşamasında…</h1>
-      <p>Merhaba! Bu sayfa şu anda development (geliştirme) aşamasında. Çok yakında daha fazla içerik ve özellik eklenecek.</p>
-      <div class="meta">
-        <a class="btn" href="#">Projeyi İncele</a>
-        <a class="btn" href="#">Bize Ulaş</a>
+  <div class="stage" role="main">
+    <header>
+      <div class="logo">YAGA</div>
+      <div class="site-name">— oyunlar &amp; eğlence</div>
+    </header>
+
+    <div class="side-btn left-col" id="leftBtn" role="button" tabindex="0" aria-label="Maho Kazan Aç">
+      <h3>Maho Kazan</h3>
+      <p>Kazı kazan macerası — şansını dene</p>
+    </div>
+
+    <div class="center center-animation" aria-hidden="false">
+      
+
+      <div class="featured-wrap">
+        <div class="featured" id="centerBtn" role="button" tabindex="0" aria-label="Eaglecraft Başlat">
+          <div class="label">Eaglecraft</div>
+          <div class="sub">Ortadaki oyun — Başlat</div>
+          <div class="badge">Öne Çıkan</div>
+        </div>
       </div>
-      <footer>© <span id="year"></span> Senin Harika Siten — Tüm hakları pornodur.</footer>
-    </section>
-  </main>
+
+      
+    </div>
+
+    <div class="side-btn right-col" id="rightBtn" role="button" tabindex="0" aria-label="Maho Piyasa Aç">
+      <h3>Maho Piyasa</h3>
+      <p>Piyasa &amp; ticaret — öğeler al</p>
+    </div>
+
+    <div class="particles" id="particles"><div class="particle" style="width: 10.512px; height: 10.512px; left: 43.8841%; top: 70.1937%; background: rgba(255, 255, 255, 0.04); animation: 11.5636s ease-in-out 0s infinite normal none running float0; opacity: 0.895557;"></div><div class="particle" style="width: 13.8112px; height: 13.8112px; left: 63.4098%; top: 64.9885%; background: rgba(139, 92, 246, 0.12); animation: 8.0915s ease-in-out 0s infinite normal none running float1; opacity: 0.369603;"></div><div class="particle" style="width: 17.2785px; height: 17.2785px; left: 42.8015%; top: 29.8968%; background: rgba(139, 92, 246, 0.12); animation: 6.52877s ease-in-out 0s infinite normal none running float2; opacity: 0.391851;"></div><div class="particle" style="width: 21.3885px; height: 21.3885px; left: 46.9134%; top: 25.2959%; background: rgba(139, 92, 246, 0.12); animation: 8.74171s ease-in-out 0s infinite normal none running float3; opacity: 0.767177;"></div><div class="particle" style="width: 10.4777px; height: 10.4777px; left: 48.1679%; top: 57.6866%; background: rgba(6, 182, 212, 0.08); animation: 8.18495s ease-in-out 0s infinite normal none running float4; opacity: 0.417488;"></div><div class="particle" style="width: 7.73633px; height: 7.73633px; left: 36.3189%; top: 32.6739%; background: rgba(139, 92, 246, 0.12); animation: 9.35106s ease-in-out 0s infinite normal none running float5; opacity: 0.705141;"></div><div class="particle" style="width: 20.3794px; height: 20.3794px; left: 66.246%; top: 29.62%; background: rgba(139, 92, 246, 0.12); animation: 12.7319s ease-in-out 0s infinite normal none running float6; opacity: 0.375515;"></div><div class="particle" style="width: 8.27406px; height: 8.27406px; left: 58.0012%; top: 34.5153%; background: rgba(255, 255, 255, 0.04); animation: 10.6506s ease-in-out 0s infinite normal none running float7; opacity: 0.813227;"></div><div class="particle" style="width: 17.6762px; height: 17.6762px; left: 66.9009%; top: 37.7025%; background: rgba(6, 182, 212, 0.08); animation: 6.08865s ease-in-out 0s infinite normal none running float8; opacity: 0.646269;"></div><div class="particle" style="width: 12.0274px; height: 12.0274px; left: 51.2699%; top: 39.8645%; background: rgba(139, 92, 246, 0.12); animation: 8.77199s ease-in-out 0s infinite normal none running float9; opacity: 0.562804;"></div><div class="particle" style="width: 11.5356px; height: 11.5356px; left: 57.9312%; top: 32.8054%; background: rgba(6, 182, 212, 0.08); animation: 10.7597s ease-in-out 0s infinite normal none running float10; opacity: 0.69466;"></div><div class="particle" style="width: 18.1818px; height: 18.1818px; left: 43.6349%; top: 39.4941%; background: rgba(255, 255, 255, 0.04); animation: 9.39254s ease-in-out 0s infinite normal none running float11; opacity: 0.47079;"></div><div class="particle" style="width: 15.5864px; height: 15.5864px; left: 31.2238%; top: 49.9808%; background: rgba(255, 255, 255, 0.04); animation: 6.48245s ease-in-out 0s infinite normal none running float12; opacity: 0.826152;"></div><div class="particle" style="width: 18.8106px; height: 18.8106px; left: 63.9267%; top: 78.9873%; background: rgba(139, 92, 246, 0.12); animation: 8.28581s ease-in-out 0s infinite normal none running float13; opacity: 0.239493;"></div><div class="particle" style="width: 23.7833px; height: 23.7833px; left: 30.8931%; top: 29.9702%; background: rgba(255, 255, 255, 0.04); animation: 9.1473s ease-in-out 0s infinite normal none running float14; opacity: 0.417708;"></div><div class="particle" style="width: 20.2877px; height: 20.2877px; left: 65.864%; top: 50.9562%; background: rgba(6, 182, 212, 0.08); animation: 6.73454s ease-in-out 0s infinite normal none running float15; opacity: 0.676939;"></div><div class="particle" style="width: 18.2857px; height: 18.2857px; left: 40.6903%; top: 60.0489%; background: rgba(255, 255, 255, 0.04); animation: 12.8857s ease-in-out 0s infinite normal none running float16; opacity: 0.650213;"></div><div class="particle" style="width: 9.6243px; height: 9.6243px; left: 60.9209%; top: 28.321%; background: rgba(6, 182, 212, 0.08); animation: 9.41711s ease-in-out 0s infinite normal none running float17; opacity: 0.5727;"></div><div class="particle" style="width: 23.2671px; height: 23.2671px; left: 62.9334%; top: 78.7776%; background: rgba(139, 92, 246, 0.12); animation: 6.42687s ease-in-out 0s infinite normal none running float18; opacity: 0.619591;"></div><div class="particle" style="width: 18.5199px; height: 18.5199px; left: 68.0941%; top: 20.3772%; background: rgba(139, 92, 246, 0.12); animation: 11.5042s ease-in-out 0s infinite normal none running float19; opacity: 0.280124;"></div><div class="particle" style="width: 12.07px; height: 12.07px; left: 44.1514%; top: 38.2672%; background: rgba(255, 255, 255, 0.04); animation: 6.67663s ease-in-out 0s infinite normal none running float20; opacity: 0.813038;"></div><div class="particle" style="width: 18.5999px; height: 18.5999px; left: 67.2492%; top: 76.3335%; background: rgba(255, 255, 255, 0.04); animation: 11.2488s ease-in-out 0s infinite normal none running float21; opacity: 0.879054;"></div></div>
+  </div>
 
   <script>
-    // Küçük bir yardımcı: dinamik yıl göstermek için
-    document.getElementById('year').textContent = new Date().getFullYear();
+    // Simple click handlers — replace the hrefs with real game pages
+    document.getElementById('leftBtn').addEventListener('click', function(){
+      openGame('oyunlar/yagakazi/index.html');
+    });
+    document.getElementById('rightBtn').addEventListener('click', function(){
+      openGame('oyunlar/yagaticaret/index.html');
+    });
+    document.getElementById('centerBtn').addEventListener('click', function(){
+      openGame('oyunlar/yagacraft/index.html');
+    });
+
+    // keyboard accessibility
+    ['leftBtn','rightBtn','centerBtn'].forEach(id=>{
+      const el = document.getElementById(id);
+      el.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+      });
+    });
+
+    function openGame(url){
+      // Try to open a relative page; if missing, show a modal/alert that can be replaced by your own loader
+      try{
+        const win = window.open(url, '_blank');
+        if(!win) throw 0;
+      }catch(e){
+        // replace this fallback with a nicer in-site modal if you want
+        alert('Sayfa bulunamadı: ' + url + '\n(Placeholder) — Kralım, bu bağlantıyı kendi oyun sayfalarına yönlendir.');
+      }
+    }
+
+    // Particles generator for subtle background sparkles around center
+    const particlesRoot = document.getElementById('particles');
+    const colors = ['rgba(139,92,246,0.12)','rgba(6,182,212,0.08)','rgba(255,255,255,0.04)'];
+    for(let i=0;i<22;i++){
+      const p = document.createElement('div');
+      p.className='particle';
+      const size = 6 + Math.random()*18;
+      p.style.width = size+'px'; p.style.height = size+'px';
+      p.style.left = (30 + Math.random()*40) + '%';
+      p.style.top = (20 + Math.random()*60) + '%';
+      p.style.background = colors[Math.floor(Math.random()*colors.length)];
+      p.style.animation = `float${i} ${6+Math.random()*8}s ease-in-out infinite`;
+      p.style.opacity = (0.2 + Math.random()*0.7);
+      particlesRoot.appendChild(p);
+      // create individual keyframes for subtle variety
+      const dur = 6+Math.random()*8;
+      const keyframeName = 'float'+i;
+      const dx = (Math.random()*60-30);
+      const dy = (Math.random()*30-15);
+      const scale = 0.6 + Math.random()*0.9;
+      const styleSheet = document.styleSheets[0];
+      styleSheet.insertRule(`@keyframes ${keyframeName}{0%{transform:translate(0,0) scale(1)}50%{transform:translate(${dx}px,${dy}px) scale(${scale})}100%{transform:translate(0,0) scale(1)}}`, styleSheet.cssRules.length);
+    }
   </script>
-</body>
-</html>
+
+
+</body></html>
